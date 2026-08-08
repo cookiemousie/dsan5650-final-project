@@ -16,16 +16,76 @@ As cities expand protected bicycle infrastructure, a core policy question persis
 
 To overcome this, this paper establishes strict temporal precedence. We model protected bike lane outcomes in Washington, D.C., as of 2026 against a normalized baseline of organic Capital Bikeshare trip volume from 2017. Using spatial GIS overlays on 2020 Census blocks and fuzzy text-matching algorithms to reconcile longitudinal station registries, we construct a block-level panel that isolates organic utilitarian demand from post-hoc usage. Employing a Bayesian Logistic Regression framework, our results reveal that historical demand positively predicts infrastructure allocation, even when controlling for population density. This study offers a rigorous causal framework for evaluating municipal resource allocation. 
 
-## Conceptual Framework & Literature {#sec-2}
+## Conceptual Framework {#sec-2}
+
+Urban infrastructure allocation can be broadly categorized into two competing theoretical models: 
+
+ 1. The Utilitarian Efficiency Model: Derived from public economics, this framework assumes that municipal agencies act as benevolent social planners aiming to maximize aggregate societal welfare. Under this model, infrastructure investments are directed toward corridors with the highest demonstrated or projected user demand. By placing protected lanes where cycling volume is already dense, planners minimize traffic conflicts, maximize transit utility, and achieve the highest return on municipal capital expenditure.
+
+2. The Political Economy & Wealth Bias Model: Rooted in public choice theory, this perspective posits that municipal resource distribution is heavily influenced by political capital, voter turnout, and socio-economic lobbying. Under this model, infrastructure investments are skewed toward wealthier, higher-income neighborhoods where residents possess the time and organizing power to petition local officials, regardless of whether those corridors represent the city's highest-utility cycling routes.
+
+Past empirical literature on active transportation infrastructure has struggled with endogeneity. Standard regression models measuring current bike lane density against current cycling volume fail to address reverse feedback loops. A positive association between infrastructure and usage can reflect two distinct phenomena. Demand can cause infrastructure via responsive planning or vise versa the infrastructure is created which induces demand. 
+
+To disentangle these mechanisms, we impose a temporal lag structure. By capturing Capital Bikeshare usage from 2017—a period preceding D.C.'s major protected bike lane expansion—we ensure that our treatment metric $T_i$ is strictly exogenous to bike lane construction completed years later ($Y_i$). This design allows us to isolate whether baseline utilitarian demand served as an input to modern infrastructure policy.
 
 ## Data and Research Design {#sec-3}
 
+### Spatial Analysis 
+
+We used 2020 Census block polygons within DC as our spatial unit of analysis. Based upon the limitations of traditional latitude and longitude coordinates and to get precise spatial joins, we used Universal Transverse Mercator (UTM) Zone 18N projected coordinate system. 
+
+### Treatment Variable: T - Historical Bikeshare Usage 
+
+To construct a comprehensive baseline of historical cycling demand, we processed a full year of 2017 Capital Bikeshare trip data split across four quarterly CSV files. Evaluating a full calendar year eliminates seasonal variances, such as summer spikes or winter declines in ridership.
+
+Because Capital Bikeshare modernized its backend system and station naming conventions between 2017 and 2026, direct merges using historical station ID numbers resulted in severe data loss. Furthermore, standard exact text string matching yielded a 15.8% failure rate due to street abbreviation mismatches. We worked to correct these down from an initial failure rate of over 30%. 
+
+Matched stations were merged with modern geospatial point locations and spatially joined (gpd.sjoin) into their intersecting 2020 Census block polygons. We summed total trip departures ($Starts_i$) and arrivals ($Ends_i$) per block to construct the aggregate annual demand metric: 
+$$T_i = \text{Total Historical Volume}_i = Starts_i + Ends_i$$
+
+### Outcome Variable: Y - Protected Bike Lanes
+
+Using D.C. Open Data bicycle lane shapefiles, we filtered the transportation network for physically protected infrastructure categories (BIKELANE_PROTECTED and BIKELANE_DUAL_PROTECTED). We performed a spatial overlay operation (gpd.overlay), clipping protected lane segments at census block boundaries and calculating the length of each segment in meters. We set Y = 1 for all segments greater than 50 meters of protected bike lane to avoid our dataset being distorted by minor segments. 
+
+### Confounder: Z - Population
+
+In our attempt to isolate organic cycling demand from general population density, we pulled in 2020 Census total populations counts for each block as our covariate. We used z-score normalization on both T and Z to enable direct comparisons. 
 
 ## Econometric / Bayesian Model Specification {#sec-4}
 
+We used a Bayesian Logistic Regression model to predict the probability ($p_i$) that a specific Census block received a protected bike lane:
 
-$$\alpha \sim \text{Normal}(0, 1.5)$$
+$$Y_i \sim \text{Bernoulli}(p_i)$$
+
+$$\text{logit}(p_i) = \alpha + \beta_T X_{T,i} + \beta_Z X_{Z,i}$$
+
+$X_{T,i}$ is the standardized 2017 bike trip volume in that block. $X_{Z,i}$ is the standardized population density of that block. We used standard, neutral priors ($\text{Normal}(0, 1.5)$) and ran the model in PyMC across 4 independent simulation chains with a No-U-Turn Sampler algorithm implementation in PyMC. 
 
 ## Results and Interpretation {#sec-5}
 
+### Model Summary
+
+Based upon the below table, our Markov chain Monte Carlo sampling completed cleanly. We achieved $\hat{R}$ statistics of 1.00 as desired. 
+
+| Parameter | Mean | SD | ETI (89%) LB | ETI (89%) UB | Bulk ESS | Tail ESS | $\hat{R}$ |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| $\beta_T$ | 0.2235 | 0.0340 | 0.17 | 0.28 | 7484 | 5658 | 1.00 |
+| $\beta_{Z[0]}$ | 0.2060 | 0.0419 | 0.14 | 0.27 | 6900 | 5857 | 1.00 |
+
+### Interpreting and Understanding the Results 
+
+Because predictors were standardized prior to estimation, the slope coefficients reflect the change in log-odds of protected bike lane allocation per one-standard-deviation increase in the feature. 
+
+1. Historical demand: The posterior mean for $\beta_T$ is $0.224$ with SD of 0.0340. Exponentiating this coefficient yields an odds ratio of $e^{0.224} \approx 1.251$. Holding population density constant, a one-standard-deviation increase in 2017 bikeshare volume increases the odds of a census block containing a protected bike lane by 25.1%. Importantly, our entire 89% posterior density interval sits above zero which provides statistical evidence that pre-existing cycling demand causally predicts infrastructure placement.
+2. Population Density: The posterior mean for $\beta_Z$ is $0.206$ ($SD = 0.042$), corresponding to an odds ratio of $e^{0.206} \approx 1.229$. Holding historical demand constant, a one-standard-deviation increase in census block population increases the odds of protected bike lane presence by 22.9%.
+
 ## Discussion and Conclusion {#sec-6}
+
+### Policy Considerations
+
+Our findings suggest that municipal transportation planning in Washington, D.C. aligns closely with the Utilitarian Efficiency Model. By proving that 2017 trip volumes causally predict modern protected lane placement, we show that DDOT does not deploy infrastructure arbitrarily. Instead, the capital investments reflect a demand-responsive agency that targets corridors with established utility and higher population densities. 
+
+### Limitations 
+
+1. Across the nine year period from our 2017 ridership data to now, certain stations were decommissioned or relocated leading to some unmapped holdouts and lost information.
+2. There are many other socio-economic confounders such as income or land-use zoning that could impact the bike demand and the policy choice to add protected bike lanes. 

@@ -35,6 +35,35 @@ ul.task-list li input[type="checkbox"] {
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="index_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="style.css">
 </head>
@@ -48,8 +77,14 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#sec-1" id="toc-sec-1" class="nav-link active" data-scroll-target="#sec-1"><span class="header-section-number">1</span> Introduction</a></li>
-  <li><a href="#sec-2" id="toc-sec-2" class="nav-link" data-scroll-target="#sec-2"><span class="header-section-number">2</span> Conceptual Framework &amp; Literature</a></li>
-  <li><a href="#sec-3" id="toc-sec-3" class="nav-link" data-scroll-target="#sec-3"><span class="header-section-number">3</span> Data and Research Design</a></li>
+  <li><a href="#sec-2" id="toc-sec-2" class="nav-link" data-scroll-target="#sec-2"><span class="header-section-number">2</span> Conceptual Framework</a></li>
+  <li><a href="#sec-3" id="toc-sec-3" class="nav-link" data-scroll-target="#sec-3"><span class="header-section-number">3</span> Data and Research Design</a>
+  <ul class="collapse">
+  <li><a href="#spatial-analysis" id="toc-spatial-analysis" class="nav-link" data-scroll-target="#spatial-analysis"><span class="header-section-number">3.1</span> Spatial Analysis</a></li>
+  <li><a href="#treatment-variable-t---historical-bikeshare-usage" id="toc-treatment-variable-t---historical-bikeshare-usage" class="nav-link" data-scroll-target="#treatment-variable-t---historical-bikeshare-usage"><span class="header-section-number">3.2</span> Treatment Variable: T - Historical Bikeshare Usage</a></li>
+  <li><a href="#outcome-variable-y---protected-bike-lanes" id="toc-outcome-variable-y---protected-bike-lanes" class="nav-link" data-scroll-target="#outcome-variable-y---protected-bike-lanes"><span class="header-section-number">3.3</span> Outcome Variable: Y - Protected Bike Lanes</a></li>
+  <li><a href="#confounder-z---population" id="toc-confounder-z---population" class="nav-link" data-scroll-target="#confounder-z---population"><span class="header-section-number">3.4</span> Confounder: Z - Population</a></li>
+  </ul></li>
   <li><a href="#sec-4" id="toc-sec-4" class="nav-link" data-scroll-target="#sec-4"><span class="header-section-number">4</span> Econometric / Bayesian Model Specification</a></li>
   <li><a href="#sec-5" id="toc-sec-5" class="nav-link" data-scroll-target="#sec-5"><span class="header-section-number">5</span> Results and Interpretation</a></li>
   <li><a href="#sec-6" id="toc-sec-6" class="nav-link" data-scroll-target="#sec-6"><span class="header-section-number">6</span> Discussion and Conclusion</a></li>
@@ -105,15 +140,46 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="sec-1" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="sec-1"><span class="header-section-number">1</span> Introduction</h2>
+<p>As cities expand protected bicycle infrastructure, a core policy question persists on whether municipal planners allocate lanes based on demonstrated citizen demand, or do socio-economic and political factors drive deployment. Empirically answering this question is complicated by simultaneous causality and the “induced demand” trap—where building a bike lane generates the very ridership used to justify it.</p>
+<p>To overcome this, this paper establishes strict temporal precedence. We model protected bike lane outcomes in Washington, D.C., as of 2026 against a normalized baseline of organic Capital Bikeshare trip volume from 2017. Using spatial GIS overlays on 2020 Census blocks and fuzzy text-matching algorithms to reconcile longitudinal station registries, we construct a block-level panel that isolates organic utilitarian demand from post-hoc usage. Employing a Bayesian Logistic Regression framework, our results reveal that historical demand positively predicts infrastructure allocation, even when controlling for population density. This study offers a rigorous causal framework for evaluating municipal resource allocation.</p>
 </section>
 <section id="sec-2" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="sec-2"><span class="header-section-number">2</span> Conceptual Framework &amp; Literature</h2>
+<h2 data-number="2" class="anchored" data-anchor-id="sec-2"><span class="header-section-number">2</span> Conceptual Framework</h2>
+<p>Urban infrastructure allocation can be broadly categorized into two competing theoretical models:</p>
+<ol type="1">
+<li><p>The Utilitarian Efficiency Model: Derived from public economics, this framework assumes that municipal agencies act as benevolent social planners aiming to maximize aggregate societal welfare. Under this model, infrastructure investments are directed toward corridors with the highest demonstrated or projected user demand. By placing protected lanes where cycling volume is already dense, planners minimize traffic conflicts, maximize transit utility, and achieve the highest return on municipal capital expenditure.</p></li>
+<li><p>The Political Economy &amp; Wealth Bias Model: Rooted in public choice theory, this perspective posits that municipal resource distribution is heavily influenced by political capital, voter turnout, and socio-economic lobbying. Under this model, infrastructure investments are skewed toward wealthier, higher-income neighborhoods where residents possess the time and organizing power to petition local officials, regardless of whether those corridors represent the city’s highest-utility cycling routes.</p></li>
+</ol>
+<p>Past empirical literature on active transportation infrastructure has struggled with endogeneity. Standard regression models measuring current bike lane density against current cycling volume fail to address reverse feedback loops. A positive association between infrastructure and usage can reflect two distinct phenomena. Demand can cause infrastructure via responsive planning or vise versa the infrastructure is created which induces demand.</p>
+<p>To disentangle these mechanisms, we impose a temporal lag structure. By capturing Capital Bikeshare usage from 2017—a period preceding D.C.’s major protected bike lane expansion—we ensure that our treatment metric <span class="math inline">\(T_i\)</span> is strictly exogenous to bike lane construction completed years later (<span class="math inline">\(Y_i\)</span>). This design allows us to isolate whether baseline utilitarian demand served as an input to modern infrastructure policy.</p>
 </section>
 <section id="sec-3" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="sec-3"><span class="header-section-number">3</span> Data and Research Design</h2>
+<section id="spatial-analysis" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="spatial-analysis"><span class="header-section-number">3.1</span> Spatial Analysis</h3>
+<p>We used 2020 Census block polygons within DC as our spatial unit of analysis. Based upon the limitations of traditional latitude and longitude coordinates and to get precise spatial joins, we used Universal Transverse Mercator (UTM) Zone 18N projected coordinate system.</p>
+</section>
+<section id="treatment-variable-t---historical-bikeshare-usage" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="treatment-variable-t---historical-bikeshare-usage"><span class="header-section-number">3.2</span> Treatment Variable: T - Historical Bikeshare Usage</h3>
+<p>To construct a comprehensive baseline of historical cycling demand, we processed a full year of 2017 Capital Bikeshare trip data split across four quarterly CSV files. Evaluating a full calendar year eliminates seasonal variances, such as summer spikes or winter declines in ridership.</p>
+<p>Because Capital Bikeshare modernized its backend system and station naming conventions between 2017 and 2026, direct merges using historical station ID numbers resulted in severe data loss. Furthermore, standard exact text string matching yielded a 15.8% failure rate due to street abbreviation mismatches. We worked to correct these down from an initial failure rate of over 30%.</p>
+<p>Matched stations were merged with modern geospatial point locations and spatially joined (gpd.sjoin) into their intersecting 2020 Census block polygons. We summed total trip departures (<span class="math inline">\(Starts_i\)</span>) and arrivals (<span class="math inline">\(Ends_i\)</span>) per block to construct the aggregate annual demand metric: <span class="math display">\[T_i = \text{Total Historical Volume}_i = Starts_i + Ends_i\]</span></p>
+</section>
+<section id="outcome-variable-y---protected-bike-lanes" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="outcome-variable-y---protected-bike-lanes"><span class="header-section-number">3.3</span> Outcome Variable: Y - Protected Bike Lanes</h3>
+<p>Using D.C. Open Data bicycle lane shapefiles, we filtered the transportation network for physically protected infrastructure categories (BIKELANE_PROTECTED and BIKELANE_DUAL_PROTECTED). We performed a spatial overlay operation (gpd.overlay), clipping protected lane segments at census block boundaries and calculating the length of each segment in meters. We set Y = 1 for all segments greater than 50 meters of protected bike lane to avoid our dataset being distorted by minor segments.</p>
+</section>
+<section id="confounder-z---population" class="level3" data-number="3.4">
+<h3 data-number="3.4" class="anchored" data-anchor-id="confounder-z---population"><span class="header-section-number">3.4</span> Confounder: Z - Population</h3>
+<p>In our attempt to isolate organic cycling demand from general population density, we pulled in 2020 Census total populations counts for each block as our covariate. We used z-score normalization on both T and Z to enable direct comparisons.</p>
+</section>
 </section>
 <section id="sec-4" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="sec-4"><span class="header-section-number">4</span> Econometric / Bayesian Model Specification</h2>
+<p>We used a Bayesian Logistic Regression model to predict the probability (<span class="math inline">\(p_i\)</span>) that a specific Census block received a protected bike lane:</p>
+<p><span class="math display">\[Y_i \sim \text{Bernoulli}(p_i)\]</span></p>
+<p><span class="math display">\[\text{logit}(p_i) = \alpha + \beta_T X_{T,i} + \beta_Z X_{Z,i}\]</span><span class="math inline">\(X_{T,i}\)</span> is the standardized 2017 bike trip volume in that block.<span class="math inline">\(X_{Z,i}\)</span> is the standardized population density of that block.We used standard, neutral priors (<span class="math inline">\(\text{Normal}(0, 1.5)\)</span>) and ran the model in PyMC across 4 independent simulation chains. The chains mixed smoothly (<span class="math inline">\(\hat{r} = 1.00\)</span>), giving us reliable results.</p>
+<p><span class="math display">\[\alpha \sim \text{Normal}(0, 1.5)\]</span></p>
 </section>
 <section id="sec-5" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="sec-5"><span class="header-section-number">5</span> Results and Interpretation</h2>
