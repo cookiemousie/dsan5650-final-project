@@ -89,3 +89,7 @@ Our findings suggest that municipal transportation planning in Washington, D.C. 
 
 1. Across the nine year period from our 2017 ridership data to now, certain stations were decommissioned or relocated leading to some unmapped holdouts and lost information.
 2. There are many other socio-economic confounders such as income or land-use zoning that could impact the bike demand and the policy choice to add protected bike lanes. 
+
+### Future Work
+
+Future work in this area could expand the covariate matrix by including measures of Median Household Income. That would help determine the impact of wealth on the presence of bike lanes since wealthier. Additionally, if there exists a database that shows when protected bike lanes were built in DC, that could allow for a fuller analysis of the conditions preceding the installation of bike lanes in certain areas.

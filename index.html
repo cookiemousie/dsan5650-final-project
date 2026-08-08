@@ -86,8 +86,17 @@ window.Quarto = {
   <li><a href="#confounder-z---population" id="toc-confounder-z---population" class="nav-link" data-scroll-target="#confounder-z---population"><span class="header-section-number">3.4</span> Confounder: Z - Population</a></li>
   </ul></li>
   <li><a href="#sec-4" id="toc-sec-4" class="nav-link" data-scroll-target="#sec-4"><span class="header-section-number">4</span> Econometric / Bayesian Model Specification</a></li>
-  <li><a href="#sec-5" id="toc-sec-5" class="nav-link" data-scroll-target="#sec-5"><span class="header-section-number">5</span> Results and Interpretation</a></li>
-  <li><a href="#sec-6" id="toc-sec-6" class="nav-link" data-scroll-target="#sec-6"><span class="header-section-number">6</span> Discussion and Conclusion</a></li>
+  <li><a href="#sec-5" id="toc-sec-5" class="nav-link" data-scroll-target="#sec-5"><span class="header-section-number">5</span> Results and Interpretation</a>
+  <ul class="collapse">
+  <li><a href="#model-summary" id="toc-model-summary" class="nav-link" data-scroll-target="#model-summary"><span class="header-section-number">5.1</span> Model Summary</a></li>
+  <li><a href="#interpreting-and-understanding-the-results" id="toc-interpreting-and-understanding-the-results" class="nav-link" data-scroll-target="#interpreting-and-understanding-the-results"><span class="header-section-number">5.2</span> Interpreting and Understanding the Results</a></li>
+  </ul></li>
+  <li><a href="#sec-6" id="toc-sec-6" class="nav-link" data-scroll-target="#sec-6"><span class="header-section-number">6</span> Discussion and Conclusion</a>
+  <ul class="collapse">
+  <li><a href="#policy-considerations" id="toc-policy-considerations" class="nav-link" data-scroll-target="#policy-considerations"><span class="header-section-number">6.1</span> Policy Considerations</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations"><span class="header-section-number">6.2</span> Limitations</a></li>
+  <li><a href="#future-work" id="toc-future-work" class="nav-link" data-scroll-target="#future-work"><span class="header-section-number">6.3</span> Future Work</a></li>
+  </ul></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="index.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -178,14 +187,87 @@ window.Quarto = {
 <h2 data-number="4" class="anchored" data-anchor-id="sec-4"><span class="header-section-number">4</span> Econometric / Bayesian Model Specification</h2>
 <p>We used a Bayesian Logistic Regression model to predict the probability (<span class="math inline">\(p_i\)</span>) that a specific Census block received a protected bike lane:</p>
 <p><span class="math display">\[Y_i \sim \text{Bernoulli}(p_i)\]</span></p>
-<p><span class="math display">\[\text{logit}(p_i) = \alpha + \beta_T X_{T,i} + \beta_Z X_{Z,i}\]</span><span class="math inline">\(X_{T,i}\)</span> is the standardized 2017 bike trip volume in that block.<span class="math inline">\(X_{Z,i}\)</span> is the standardized population density of that block.We used standard, neutral priors (<span class="math inline">\(\text{Normal}(0, 1.5)\)</span>) and ran the model in PyMC across 4 independent simulation chains. The chains mixed smoothly (<span class="math inline">\(\hat{r} = 1.00\)</span>), giving us reliable results.</p>
-<p><span class="math display">\[\alpha \sim \text{Normal}(0, 1.5)\]</span></p>
+<p><span class="math display">\[\text{logit}(p_i) = \alpha + \beta_T X_{T,i} + \beta_Z X_{Z,i}\]</span></p>
+<p><span class="math inline">\(X_{T,i}\)</span> is the standardized 2017 bike trip volume in that block. <span class="math inline">\(X_{Z,i}\)</span> is the standardized population density of that block. We used standard, neutral priors (<span class="math inline">\(\text{Normal}(0, 1.5)\)</span>) and ran the model in PyMC across 4 independent simulation chains with a No-U-Turn Sampler algorithm implementation in PyMC.</p>
 </section>
 <section id="sec-5" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="sec-5"><span class="header-section-number">5</span> Results and Interpretation</h2>
+<section id="model-summary" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="model-summary"><span class="header-section-number">5.1</span> Model Summary</h3>
+<p>Based upon the below table, our Markov chain Monte Carlo sampling completed cleanly. We achieved <span class="math inline">\(\hat{R}\)</span> statistics of 1.00 as desired.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parameter</th>
+<th style="text-align: center;">Mean</th>
+<th style="text-align: center;">SD</th>
+<th style="text-align: center;">ETI (89%) LB</th>
+<th style="text-align: center;">ETI (89%) UB</th>
+<th style="text-align: center;">Bulk ESS</th>
+<th style="text-align: center;">Tail ESS</th>
+<th style="text-align: center;"><span class="math inline">\(\hat{R}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\beta_T\)</span></td>
+<td style="text-align: center;">0.2235</td>
+<td style="text-align: center;">0.0340</td>
+<td style="text-align: center;">0.17</td>
+<td style="text-align: center;">0.28</td>
+<td style="text-align: center;">7484</td>
+<td style="text-align: center;">5658</td>
+<td style="text-align: center;">1.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\beta_{Z[0]}\)</span></td>
+<td style="text-align: center;">0.2060</td>
+<td style="text-align: center;">0.0419</td>
+<td style="text-align: center;">0.14</td>
+<td style="text-align: center;">0.27</td>
+<td style="text-align: center;">6900</td>
+<td style="text-align: center;">5857</td>
+<td style="text-align: center;">1.00</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="interpreting-and-understanding-the-results" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="interpreting-and-understanding-the-results"><span class="header-section-number">5.2</span> Interpreting and Understanding the Results</h3>
+<p>Because predictors were standardized prior to estimation, the slope coefficients reflect the change in log-odds of protected bike lane allocation per one-standard-deviation increase in the feature.</p>
+<ol type="1">
+<li>Historical demand: The posterior mean for <span class="math inline">\(\beta_T\)</span> is <span class="math inline">\(0.224\)</span> with SD of 0.0340. Exponentiating this coefficient yields an odds ratio of <span class="math inline">\(e^{0.224} \approx 1.251\)</span>. Holding population density constant, a one-standard-deviation increase in 2017 bikeshare volume increases the odds of a census block containing a protected bike lane by 25.1%. Importantly, our entire 89% posterior density interval sits above zero which provides statistical evidence that pre-existing cycling demand causally predicts infrastructure placement.</li>
+<li>Population Density: The posterior mean for <span class="math inline">\(\beta_Z\)</span> is <span class="math inline">\(0.206\)</span> (<span class="math inline">\(SD = 0.042\)</span>), corresponding to an odds ratio of <span class="math inline">\(e^{0.206} \approx 1.229\)</span>. Holding historical demand constant, a one-standard-deviation increase in census block population increases the odds of protected bike lane presence by 22.9%.</li>
+</ol>
+</section>
 </section>
 <section id="sec-6" class="level2" data-number="6">
 <h2 data-number="6" class="anchored" data-anchor-id="sec-6"><span class="header-section-number">6</span> Discussion and Conclusion</h2>
+<section id="policy-considerations" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="policy-considerations"><span class="header-section-number">6.1</span> Policy Considerations</h3>
+<p>Our findings suggest that municipal transportation planning in Washington, D.C. aligns closely with the Utilitarian Efficiency Model. By proving that 2017 trip volumes causally predict modern protected lane placement, we show that DDOT does not deploy infrastructure arbitrarily. Instead, the capital investments reflect a demand-responsive agency that targets corridors with established utility and higher population densities.</p>
+</section>
+<section id="limitations" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="limitations"><span class="header-section-number">6.2</span> Limitations</h3>
+<ol type="1">
+<li>Across the nine year period from our 2017 ridership data to now, certain stations were decommissioned or relocated leading to some unmapped holdouts and lost information.</li>
+<li>There are many other socio-economic confounders such as income or land-use zoning that could impact the bike demand and the policy choice to add protected bike lanes.</li>
+</ol>
+</section>
+<section id="future-work" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="future-work"><span class="header-section-number">6.3</span> Future Work</h3>
+<p>Future work in this area could expand the covariate matrix by including measures of Median Household Income. That would help determine the impact of wealth on the presence of bike lanes since wealthier. Additionally, if there exists a database that shows when protected bike lanes were built in DC, that could allow for a fuller analysis of the conditions preceding the installation of bike lanes in certain areas.</p>
+</section>
 </section>
 
 </main>
